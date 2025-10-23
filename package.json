@@ -23,6 +23,9 @@
     "@nestjs/common": "^11.1.7",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "mongoose": "^8.19.2",
+    "pino": "^10.1.0",
+    "pino-logger": "^1.0.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
