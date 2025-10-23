@@ -20,9 +20,14 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@golevelup/profiguration": "^0.2.1",
     "@nestjs/common": "^11.1.7",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/mongoose": "^11.0.3",
     "@nestjs/platform-express": "^11.0.1",
+    "bcrypt": "^6.0.0",
+    "class-validator": "^0.14.2",
     "mongoose": "^8.19.2",
     "pino": "^10.1.0",
     "pino-logger": "^1.0.0",
