@@ -5,10 +5,11 @@ import * as bcrypt from 'bcrypt';
 import { User, UserDocument } from './entites/users.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Grocery, GroceryDocument } from '../grocery/entities/grocery.entity';
+import { GroceryService } from 'src/grocery/grocery.service';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>, @InjectModel(Grocery.name) private groceryModel: Model<GroceryDocument>) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>, private readonly groceryService: GroceryService) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     const { email, password, grocery } = createUserDto;
@@ -18,7 +19,7 @@ export class UsersService {
       throw new ConflictException('Email already registered');
     }
 
-    const groceryDb = await this.groceryModel.findOne({ _id: grocery });
+    const groceryDb = await this.groceryService.getGrocery(grocery);
     if (!groceryDb) {
       throw new BadRequestException('Node not found');
     }
