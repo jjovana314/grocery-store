@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsMongoId, IsNotEmpty, MinLength } from 'class-validator';
 import { UserType } from '../entites/users.entity';
 
 export class CreateUserDto {
@@ -16,4 +16,8 @@ export class CreateUserDto {
 
   @IsEnum(UserType)
   type: UserType;
+
+  @IsMongoId()
+  @IsNotEmpty()
+  grocery: string;
 }

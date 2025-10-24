@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import * as mongoose from 'mongoose';
+import { Grocery } from '../../grocery/entities/grocery.entity';
 
 export type UserDocument = User & Document;
 
@@ -21,6 +23,9 @@ export class User {
 
   @Prop({ required: true })
   password: string;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Grocery', required: true })
+  grocery: Grocery;
 
   @Prop({ required: true, enum: UserType })
   type: UserType;
