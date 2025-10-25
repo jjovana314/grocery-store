@@ -5,10 +5,37 @@ import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { config } from 'src/config/config';
 import { GroceryModule } from './grocery/grocery.module';
+import { SeedService } from './seed/seed.service';
+import { SeedModule } from './seed/seed.module';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
-  imports: [UsersModule, MongooseModule.forRoot(config.get().DATABASE_URL), GroceryModule],
+  imports: [
+    UsersModule,
+    GroceryModule,
+    SeedModule,
+    MongooseModule.forRoot(config.get().DATABASE_URL),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        useLevel: 'info',
+        serializers: {
+          timestamp: () => {
+            `time: ${new Date(Date.now()).toISOString()}`;
+          },
+        },
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: `dd.mm.yyyy, HH:MM:ss`,
+            ignore: 'pid,hostname',
+          },
+        },
+        autoLogging: false,
+      },
+    }),
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, SeedService],
 })
-export class AppModule {}
+export class AppModule { }
