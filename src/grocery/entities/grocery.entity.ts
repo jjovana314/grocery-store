@@ -5,6 +5,9 @@ export type GroceryDocument = Grocery & Document;
 
 @Schema({ timestamps: true })
 export class Grocery {
+  @Prop({ type: mongoose.Schema.Types.ObjectId })
+  id: string;
+
   @Prop({ required: true })
   name: string;
 

@@ -24,4 +24,10 @@ export class GroceryService {
     async getGrocery(id: string): Promise<Grocery | null> {
         return await this.groceryModel.findById(id);
     }
+
+    async createGrocery(name: string, type: string, parent?: string ): Promise<Grocery> {
+        const request: any = { name, type };
+        if (parent) request.parent = parent;
+        return await this.groceryModel.create(request);
+    }
 }
