@@ -10,5 +10,5 @@ export class CreateGroceryDto {
 
     @IsOptional()
     @IsMongoId()
-    parent: string | undefined;
+    parent?: string;
 }

@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { Groceries } from './interfaces/grocery.interface';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { CreateGroceryDto } from './dto/create.grocery.dto';
+import { UpdateGroceryDto } from './dto/update.grocery.dto';
 
 @Injectable()
 export class GroceryService {
@@ -43,5 +44,24 @@ export class GroceryService {
         return { groceries: groceries.deletedCount };
     }
 
-    async updateGrocery(update: )
+    async updateGrocery(id: string, request: UpdateGroceryDto): Promise<Grocery> {
+        const grocery: Grocery | null = await this.groceryModel.findById(id);
+        if (!grocery) {
+            throw new NotFoundException('Grocery not found');
+        }
+        if (request.name) {
+            grocery.name = request.name;
+        }
+        if (request.parent) {
+            const groceryParent = await this.groceryModel.findById(request.parent);
+            if (!groceryParent) {
+                throw new NotFoundException('Parent grocery not found');
+            }
+            grocery.parent = groceryParent.id;
+        }
+        if (request.type) {
+            grocery.type = request.type;
+        }
+        return grocery;
+    }
 }

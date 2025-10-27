@@ -8,6 +8,8 @@ import { GroceryModule } from './grocery/grocery.module';
 import { SeedService } from './seed/seed.service';
 import { SeedModule } from './seed/seed.module';
 import { LoggerModule } from 'nestjs-pino';
+import { RolesGuard } from './auth/roles.guard';
+import { AuthGuard } from './auth/auth.guard';
 
 @Module({
   imports: [
@@ -36,6 +38,6 @@ import { LoggerModule } from 'nestjs-pino';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, SeedService],
+  providers: [AppService, SeedService, RolesGuard, AuthGuard],
 })
 export class AppModule { }
