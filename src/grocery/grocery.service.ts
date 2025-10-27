@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Grocery, GroceryDocument } from './entities/grocery.entity';
 import { Model } from 'mongoose';
 import { Groceries } from './interfaces/grocery.interface';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { CreateGroceryDto } from './dto/create.grocery.dto';
 
 @Injectable()
 export class GroceryService {
@@ -32,7 +34,7 @@ export class GroceryService {
         return await this.groceryModel.findOne({ name });
     }
 
-    async createGrocery(request: { name: string, type: string, parent?: string } ): Promise<Grocery> {
+    async createGrocery(request: CreateGroceryDto ): Promise<Grocery> {
         return await this.groceryModel.create(request);
     }
 
@@ -40,4 +42,6 @@ export class GroceryService {
         const groceries = await this.groceryModel.deleteMany();
         return { groceries: groceries.deletedCount };
     }
+
+    async updateGrocery(update: )
 }

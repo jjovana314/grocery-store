@@ -3,6 +3,13 @@ import * as mongoose from 'mongoose';
 
 export type GroceryDocument = mongoose.HydratedDocument<Grocery> & { _id: mongoose.Types.ObjectId };
 
+export enum GroceryType {
+  COUNTRY = 'country',
+  REGION = 'region',
+  CITY = 'city',
+  STORE = 'store'
+}
+
 @Schema({ timestamps: true })
 export class Grocery {
   @Prop()

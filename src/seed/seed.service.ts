@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-import { Grocery, GroceryDocument } from '../grocery/entities/grocery.entity';
+import { Grocery, GroceryDocument, GroceryType } from '../grocery/entities/grocery.entity';
 import { User, UserDocument } from '../users/entites/users.entity';
 import { groceriesData } from './data/groceries';
 import { usersData } from './data/users';
@@ -30,7 +30,7 @@ export class SeedService {
 
       const newGrocery = await this.groceryService.createGrocery({
         name: grocery.name,
-        type: grocery.type,
+        type: GroceryType[grocery.type],
         parent: parentId,
       });
       this.logger.info(`Grocery id ${newGrocery.id}`);
