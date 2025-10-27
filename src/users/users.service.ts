@@ -4,7 +4,6 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User, UserDocument } from './entites/users.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { Grocery, GroceryDocument } from '../grocery/entities/grocery.entity';
 import { GroceryService } from 'src/grocery/grocery.service';
 
 @Injectable()
