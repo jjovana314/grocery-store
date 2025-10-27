@@ -34,15 +34,9 @@ export class UsersService {
   }
 
   async updateUser(id: string, updateId: string, request: UpdateUserDto): Promise<User> {
-    const user = await this.userModel.findById(id);
-    const userForUpdate = await this.userModel.findById(updateId);
+    const { currentUser, user } = await this.validate(id, updateId);
     let groceryId: string | undefined = '';
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`)
-    }
-    if (!userForUpdate) {
-      throw new NotFoundException(`User with ID ${updateId} not found`)
-    }
+
 
     // check user grocery hierachy
     if (request.grocery) {
@@ -52,15 +46,15 @@ export class UsersService {
       }
       groceryId = newGrocery.id;
     } else {
-      groceryId = userForUpdate.grocery.id;
+      groceryId = user.grocery.id;
     }
 
-    if (await this.canUpdateUser(user.grocery.id, groceryId)) {
-      await this.updateUserData(userForUpdate, request);
-      userForUpdate.save();
-      return userForUpdate;
+    if (await this.canUpdateUser(currentUser.grocery.id, groceryId)) {
+      await this.updateUserData(user, request);
+      user.save();
+      return user;
     }
-    throw new ForbiddenException(`User of type ${user.type} is not allowed to update`)
+    throw new ForbiddenException(`User of type ${user.type} and id ${user.id} is not allowed to update`)
   }
 
   private async canUpdateUser(currentUserGroceryId: string, targetGroceryId: string): Promise<boolean> {
@@ -69,6 +63,18 @@ export class UsersService {
     const parents = await this.groceryService.getParents(targetGroceryId);
     const parentIds = parents.groceries.map(g => g.id);
     return parentIds.includes(currentUserGroceryId);
+  }
+
+  private async validate(currUserId: string , userId: string): Promise<{ currentUser: User, user: User}> {
+    const currentUser = await this.userModel.findById(currUserId);
+    const user = await this.userModel.findById(userId);
+    if (!currentUser) {
+      throw new NotFoundException(`User with ID ${currUserId} not found`)
+    }
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`)
+    }
+    return { currentUser, user };
   }
 
   private async updateUserData(user: User, request: UpdateUserDto) {
@@ -87,6 +93,12 @@ export class UsersService {
     if (request.password) {
       user.password = await bcrypt.hash(request.password, 10);
     }
+  }
+
+  async deleteUser(currentUserId: string, id: string) {
+    
+
+
   }
 }
 
