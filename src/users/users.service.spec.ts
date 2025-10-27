@@ -3,10 +3,12 @@ import { UsersService } from './users.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { User, UserType } from './entites/users.entity';
 import * as bcrypt from 'bcrypt';
+import { GroceryService } from 'src/grocery/grocery.service';
 
 describe('UsersService', () => {
   let service: UsersService;
   let userModel: any;
+  let groceryService: any;
 
   beforeEach(async () => {
     userModel = {
@@ -31,6 +33,10 @@ describe('UsersService', () => {
 
   it('should register a new user successfully', async () => {
     userModel.findOne.mockResolvedValue(null);
+    groceryService.getOneGroceryByName.mockResolvedValue({
+      id: 'mockedGroceryId',
+      name: 'Radnja 1',
+    });
     const hashedPassword = await bcrypt.hash('password123', 10);
 
     userModel.save = jest.fn().mockResolvedValue({
@@ -39,6 +45,7 @@ describe('UsersService', () => {
       email: 'test@example.com',
       password: hashedPassword,
       type: 'manager',
+      grocery: 'mockedGroceryId',
     });
 
     const result = await service.createUser({
@@ -47,11 +54,13 @@ describe('UsersService', () => {
       email: 'test@example.com',
       password: 'password123',
       type: UserType.MANAGER,
-      grocery: '671a4444' // todo: add grocery ID here
+      grocery: 'Radnja 1'
     });
 
+    expect(groceryService.getOneGroceryByName).toHaveBeenCalledWith('Radnja 1');
     expect(result.email).toBe('test@example.com');
     expect(result.password).not.toBe('password123');
+    expect(result.grocery).toBe('mockedGroceryId');
   });
 
   it('should throw ConflictException if email already exists', async () => {
@@ -64,7 +73,7 @@ describe('UsersService', () => {
         email: 'existing@example.com',
         password: 'secret123',
         type: UserType.EMPLOYEE,
-        grocery: '671a4444', // todo: add grocery ID here
+        grocery: 'Radnja 1',
       }),
     ).rejects.toThrow('Email already registered');
   });

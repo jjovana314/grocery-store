@@ -40,8 +40,4 @@ export class GroceryService {
         const groceries = await this.groceryModel.deleteMany();
         return { groceries: groceries.deletedCount };
     }
-
-    async createMany(groceries: Groceries) {
-        await this.groceryModel.insertMany(groceries.groceries);
-    }
 }
