@@ -7,7 +7,7 @@ import { GroceryService } from './grocery.service';
 export class GroceryController {
     constructor(private readonly groceryService: GroceryService) {}
     @Get()
-    async getGroceries(@Query() type: string): Promise<Groceries> {
-        return await this.groceryService.getAllGroceries(type);
+    async getGroceries(@Query() type: string, name: string): Promise<Groceries> {
+        return await this.groceryService.find({ type, name });
     }
 }

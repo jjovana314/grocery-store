@@ -17,40 +17,32 @@ export class SeedService implements OnModuleInit {
     private readonly groceryService: GroceryService,
     private readonly userService: UsersService,
     private readonly logger: PinoLogger,
-  ) {}
+  ) { }
 
   onModuleInit() {
     this.runSeed();
   }
-
   async runSeed() {
-    // await this.groceryModel.deleteMany({});
-    // await this.userModel.deleteMany({});
-    // this.logger.info('Cleared existing data.');
+    await this.groceryService.deleteAllGroceries();
+    this.logger.info('Cleared existing data.');
 
     const groceryMap = new Map<string, string>();
+
     for (const grocery of groceriesData) {
       const parentId: string | undefined = grocery.parent ? groceryMap.get(grocery.parent) : undefined;
-      const newGrocery = await this.groceryService.createGrocery(
-        grocery.name,
-        grocery.type,
-        parentId,
-      );
+
+      const newGrocery = await this.groceryService.createGrocery({
+        name: grocery.name,
+        type: grocery.type,
+        parent: parentId,
+      });
+      this.logger.info(`Grocery id ${newGrocery.id}`);
       groceryMap.set(grocery.name, newGrocery.id);
     }
+
     this.logger.info('Created grocery hierarchy.');
-
-    // for (const user of usersData) {
-    //   const hashed = await bcrypt.hash(user.password, 10);
-    //   await this.userService.createUser({
-    //     ...user,
-    //     password: hashed,
-    //     grocery: groceryMap.get(user.grocery),
-    //   });
-    // }
-    // this.logger.info('Created users.');
-
     this.logger.info('Seeding complete.');
   }
+
 }
 

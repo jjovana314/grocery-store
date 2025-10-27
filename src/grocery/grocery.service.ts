@@ -8,10 +8,13 @@ import { Groceries } from './interfaces/grocery.interface';
 export class GroceryService {
     constructor(@InjectModel(Grocery.name) private groceryModel: Model<GroceryDocument>) { }
 
-    async getAllGroceries(type?: string): Promise<Groceries> {
+    async find(request: { type?: string, name?: string} ): Promise<Groceries> {
         const query: any = {};
-        if (type) {
-            query.type = type;
+        if (request.type) {
+            query.type = request.type;
+        }
+        if (request.name) {
+            query.name = request.name;
         }
         const groceries = await this.groceryModel.find(query);
         if (!groceries) {
@@ -25,9 +28,20 @@ export class GroceryService {
         return await this.groceryModel.findById(id);
     }
 
-    async createGrocery(name: string, type: string, parent?: string ): Promise<Grocery> {
-        const request: any = { name, type };
-        if (parent) request.parent = parent;
+    async getOneGroceryByName(name: string): Promise<Grocery | null> {
+        return await this.groceryModel.findOne({ name });
+    }
+
+    async createGrocery(request: { name: string, type: string, parent?: string } ): Promise<Grocery> {
         return await this.groceryModel.create(request);
+    }
+
+    async deleteAllGroceries(): Promise<{ groceries: number}> {
+        const groceries = await this.groceryModel.deleteMany();
+        return { groceries: groceries.deletedCount };
+    }
+
+    async createMany(groceries: Groceries) {
+        await this.groceryModel.insertMany(groceries.groceries);
     }
 }

@@ -1,11 +1,11 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import * as mongoose from 'mongoose';
 
-export type GroceryDocument = Grocery & Document;
+export type GroceryDocument = mongoose.HydratedDocument<Grocery> & { _id: mongoose.Types.ObjectId };
 
 @Schema({ timestamps: true })
 export class Grocery {
-  @Prop({ type: mongoose.Schema.Types.ObjectId })
+  @Prop()
   id: string;
 
   @Prop({ required: true })
@@ -19,3 +19,10 @@ export class Grocery {
 }
 
 export const GrocerySchema = SchemaFactory.createForClass(Grocery);
+
+GrocerySchema.pre<GroceryDocument>('save', function (next) {
+  if (this._id && !this.id) {
+    this.id = this._id.toString();
+  }
+  next();
+});
