@@ -11,7 +11,7 @@ import { GroceryService } from 'src/grocery/grocery.service';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
-export class SeedService implements OnModuleInit {
+export class SeedService {
 
   constructor(
     private readonly groceryService: GroceryService,
@@ -19,9 +19,6 @@ export class SeedService implements OnModuleInit {
     private readonly logger: PinoLogger,
   ) { }
 
-  onModuleInit() {
-    this.runSeed();
-  }
   async runSeed() {
     await this.groceryService.deleteAllGroceries();
     this.logger.info('Cleared existing data.');
