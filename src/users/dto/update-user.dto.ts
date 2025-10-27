@@ -3,24 +3,24 @@ import { UserType } from '../entites/users.entity';
 
 export class UpdateUserDto {
   @IsOptional()
-  firstName: string;
+  firstName?: string;
 
   @IsOptional()
-  lastName: string;
+  lastName?: string;
 
   @IsOptional()
   @IsEmail()
-  email: string;
+  email?: string;
 
   @IsOptional()
   @MinLength(6)
-  password: string;
+  password?: string;
 
   @IsOptional()
   @IsEnum(UserType)
-  type: UserType;
+  type?: UserType;
 
   @IsOptional()
   @IsMongoId()
-  grocery: string;
+  grocery?: string;
 }

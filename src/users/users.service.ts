@@ -35,25 +35,32 @@ export class UsersService {
 
   async updateUser(id: string, updateId: string, request: UpdateUserDto): Promise<User> {
     const user = await this.userModel.findById(id);
+    const userForUpdate = await this.userModel.findById(updateId);
+    let groceryId: string | undefined = '';
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`)
     }
+    if (!userForUpdate) {
+      throw new NotFoundException(`User with ID ${updateId} not found`)
+    }
+
     // check user grocery hierachy
-    const newGrocery = await this.groceryService.getGrocery(request.grocery);
-    if (!newGrocery) {
-      throw new NotFoundException('Grocery not found');
-    }
-    if (await this.canUpdateUser(user.grocery.id, newGrocery.id)) {
-      const userForUpdate = await this.userModel.findById(updateId);
-      if (!userForUpdate) {
-        throw new NotFoundException(`User with ID ${updateId} not found`)
+    if (request.grocery) {
+      const newGrocery = await this.groceryService.getGrocery(request.grocery);
+      if (!newGrocery) {
+        throw new NotFoundException('Grocery not found');
       }
-      await this.updateUserData(user, request);
-      user.save();
-      return user;
+      groceryId = newGrocery.id;
     } else {
-      throw new ForbiddenException(`User of type ${user.type} is not allowed to update`)
+      groceryId = userForUpdate.grocery.id;
     }
+
+    if (await this.canUpdateUser(user.grocery.id, groceryId)) {
+      await this.updateUserData(userForUpdate, request);
+      userForUpdate.save();
+      return userForUpdate;
+    }
+    throw new ForbiddenException(`User of type ${user.type} is not allowed to update`)
   }
 
   private async canUpdateUser(currentUserGroceryId: string, targetGroceryId: string): Promise<boolean> {
@@ -75,7 +82,7 @@ export class UsersService {
       user.lastName = request.lastName;
     }
     if (request.type) {
-      user.lastName = request.lastName;
+      user.type = request.type;
     }
     if (request.password) {
       user.password = await bcrypt.hash(request.password, 10);

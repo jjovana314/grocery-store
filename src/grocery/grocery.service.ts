@@ -98,14 +98,5 @@ export class GroceryService {
         await findChildren(groceryId);
 
         return children;
-    }
-
-
-    async canUpdateGrocery(currentUserGroceryId: string, targetGroceryId: string): Promise<boolean> {
-        if (currentUserGroceryId === targetGroceryId) return true;
-
-        const parents = await this.getParents(targetGroceryId);
-        const parentIds = parents.groceries.map(g => g.id);
-        return parentIds.includes(currentUserGroceryId);
-    }
+    }    
 }

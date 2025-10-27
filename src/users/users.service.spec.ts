@@ -4,6 +4,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { User, UserType } from './entites/users.entity';
 import * as bcrypt from 'bcrypt';
 import { GroceryService } from '../grocery/grocery.service';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -26,6 +27,7 @@ describe('UsersService', () => {
 
     groceryService = {
       getGrocery: jest.fn(),
+      getParents: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -77,5 +79,65 @@ describe('UsersService', () => {
         grocery: 'Radnja 1',
       }),
     ).rejects.toThrow('Email already registered');
+  });
+
+  it('should update a user successfully if current user is allowed', async () => {
+    const userModel: any = (service as any).userModel;
+
+    // deffine target and current user
+    const targetUser = {
+      id: 'targetUserId',
+      firstName: 'Marko',
+      lastName: 'Markovic',
+      email: 'marko@example.com',
+      password: 'oldPassword',
+      grocery: { id: 'childGroceryId' },
+      save: jest.fn().mockResolvedValue({
+        firstName: 'MarkoUpdated',
+        lastName: 'MarkovicUpdated',
+        grocery: { id: 'childGroceryId' },
+      }),
+    };
+
+    const currentUser = {
+      id: 'currentUserId',
+      grocery: { id: 'currentUserGroceryId' },
+      type: UserType.MANAGER,
+      save: jest.fn().mockResolvedValue({}),
+    };
+
+    userModel.findById = jest.fn().mockImplementation((id: string) => {
+      if (id === 'targetUserId') return Promise.resolve(targetUser);
+      if (id === 'currentUserId') return Promise.resolve(currentUser);
+      return null;
+    });
+
+    // Grocery service mock
+    groceryService.getGrocery = jest.fn().mockResolvedValue({
+      id: 'childGroceryId',
+      name: 'Radnja Child',
+    });
+
+    groceryService.getParents = jest.fn().mockResolvedValue({
+      groceries: [
+        { id: 'parentGroceryId', name: 'Parent', type: 'region', parent: null },
+        { id: 'currentUserGroceryId', name: 'Current', type: 'store', parent: null },
+      ],
+    });
+
+    const updateDto: UpdateUserDto = {
+      firstName: 'MarkoUpdated',
+      lastName: 'MarkovicUpdated',
+      grocery: 'childGroceryId',
+    };
+
+    const result = await service.updateUser(currentUser.id, targetUser.id, updateDto);
+
+    expect(userModel.findById).toHaveBeenCalledWith('targetUserId');
+    expect(groceryService.getGrocery).toHaveBeenCalledWith('childGroceryId');
+    expect(groceryService.getParents).toHaveBeenCalledWith('childGroceryId');
+    expect(targetUser.save).toHaveBeenCalled();
+    expect(result.firstName).toBe('MarkoUpdated');
+    expect(result.lastName).toBe('MarkovicUpdated');
   });
 });
