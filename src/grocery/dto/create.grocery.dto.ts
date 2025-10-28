@@ -6,7 +6,7 @@ export class CreateGroceryDto {
     name: string;
 
     @IsEnum(GroceryType)
-    type: GroceryType;
+    type: string;
 
     @IsOptional()
     @IsMongoId()

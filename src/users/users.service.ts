@@ -102,5 +102,10 @@ export class UsersService {
     }
     throw new ForbiddenException(`Cannot delete user with ID ${user.id}`);
   }
+
+  async deleteAllUsers() {
+    const result = await this.userModel.deleteMany();
+    return result.deletedCount;
+  }
 }
 

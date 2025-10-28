@@ -1,9 +1,7 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { Grocery, GroceryDocument, GroceryType } from '../grocery/entities/grocery.entity';
-import { User, UserDocument } from '../users/entites/users.entity';
+import { GroceryType } from '../grocery/entities/grocery.entity';
+import { UserType } from '../users/entites/users.entity';
 import { groceriesData } from './data/groceries';
 import { usersData } from './data/users';
 import { PinoLogger } from 'nestjs-pino';
@@ -21,6 +19,7 @@ export class SeedService {
 
   async runSeed() {
     await this.groceryService.deleteAllGroceries();
+    await this.userService.deleteAllUsers();
     this.logger.info('Cleared existing data.');
 
     const groceryMap = new Map<string, string>();
@@ -28,9 +27,12 @@ export class SeedService {
     for (const grocery of groceriesData) {
       const parentId: string | undefined = grocery.parent ? groceryMap.get(grocery.parent) : undefined;
 
+      this.logger.info(`Grocery data ${JSON.stringify(grocery)}`);
+      this.logger.info(JSON.stringify(GroceryType[grocery.type]))
+
       const newGrocery = await this.groceryService.createGrocery({
         name: grocery.name,
-        type: GroceryType[grocery.type],
+        type: grocery.type,
         parent: parentId,
       });
       this.logger.info(`Grocery id ${newGrocery.id}`);
@@ -38,6 +40,28 @@ export class SeedService {
     }
 
     this.logger.info('Created grocery hierarchy.');
+
+    for (const user of usersData) {
+      const groceryId = groceryMap.get(user.grocery);
+
+      if (!groceryId) {
+        this.logger.warn(`Skipping user ${user.email} — grocery "${user.grocery}" not found.`);
+        continue;
+      }
+
+      const hashedPassword = await bcrypt.hash(user.password, 10);
+      this.logger.info(`User data ${JSON.stringify(user)}`);
+      this.logger.info(UserType[user.type]);
+
+      await this.userService.createUser({
+        ...user,
+        type: user.type,
+        password: hashedPassword,
+        grocery: groceryId,
+      });
+      this.logger.info(`Created user: ${user.email}`);
+
+    }
     this.logger.info('Seeding complete.');
   }
 

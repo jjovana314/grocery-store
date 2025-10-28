@@ -15,7 +15,7 @@ export class CreateUserDto {
   password: string;
 
   @IsEnum(UserType)
-  type: UserType;
+  type: string;
 
   @IsMongoId()
   @IsNotEmpty()
