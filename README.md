@@ -3,8 +3,6 @@
 This is a backend service for managing grocery stores, users, and store hierarchies.  
 Built with **NestJS**, **Mongoose**, and **TypeScript**.
 
----
-
 ## Features
 
 - User registration (Manager / Employee)
@@ -14,8 +12,6 @@ Built with **NestJS**, **Mongoose**, and **TypeScript**.
 - Unit testing with Jest
 - Configuration via environment variables
 
----
-
 ## Requirements
 
 Before you begin, make sure you have installed:
@@ -23,8 +19,6 @@ Before you begin, make sure you have installed:
 - [Node.js](https://nodejs.org/en/) (>= 18)
 - [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
 - [MongoDB](https://www.mongodb.com/try/download/community) (running locally or via Docker)
-
----
 
 ## Installation
 
@@ -38,8 +32,6 @@ npm install
 
 Then open .env and set your MongoDB URL:
 DATABASE_URL=your_mongodb_url
-
----
 
 ## Database Seeding
 
@@ -55,8 +47,6 @@ This will:
 
 Make sure MongoDB is running locally before executing this command.
 
----
-
 ## Running Tests
 
 Unit tests are written using Jest and NestJS TestingModule.
@@ -65,7 +55,6 @@ To run all tests:
 ```bash
 npm run test
 ```
----
 
 ## Notes
 
@@ -74,14 +63,10 @@ npm run test
 - Logging is done via nestjs-pino
 - Seeder script uses ts-node and tsconfig-paths/register to run TypeScript directly.
 
----
-
 ## Author
 
 Developed by Jovana Jovanović
 Contact: jjovana314@gmail.com
-
----
 
 ## License
 
