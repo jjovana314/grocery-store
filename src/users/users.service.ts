@@ -30,13 +30,12 @@ export class UsersService {
       password: hashedPassword,
     });
 
-    return user.save();
+    return await user.save();
   }
 
   async updateUser(id: string, updateId: string, request: UpdateUserDto): Promise<User> {
     const { currentUser, user } = await this.validate(id, updateId);
-    let groceryId: string | undefined = '';
-
+    let groceryId: string = '';
 
     // check user grocery hierachy
     if (request.grocery) {
@@ -51,7 +50,7 @@ export class UsersService {
 
     if (await this.canUpdateUser(currentUser.grocery.id, groceryId)) {
       await this.updateUserData(user, request);
-      user.save();
+      await user.save();
       return user;
     }
     throw new ForbiddenException(`User of type ${user.type} and id ${user.id} is not allowed to update`)
@@ -65,7 +64,7 @@ export class UsersService {
     return parentIds.includes(currentUserGroceryId);
   }
 
-  private async validate(currUserId: string , userId: string): Promise<{ currentUser: User, user: User}> {
+  private async validate(currUserId: string , userId: string): Promise<any> {
     const currentUser = await this.userModel.findById(currUserId);
     const user = await this.userModel.findById(userId);
     if (!currentUser) {
@@ -95,10 +94,13 @@ export class UsersService {
     }
   }
 
-  async deleteUser(currentUserId: string, id: string) {
-    
-
-
+  async deleteUser(currentUserId: string, id: string): Promise<User> {
+    const { currentUser, user } = await this.validate(currentUserId, id);
+    if (await this.canUpdateUser(currentUser.grocery.id, user.grocery.id)) {
+      await user.delete();
+      return user;
+    }
+    throw new ForbiddenException(`Cannot delete user with ID ${user.id}`);
   }
 }
 

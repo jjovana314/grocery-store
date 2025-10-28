@@ -12,7 +12,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 export class GroceryController {
     constructor(private readonly groceryService: GroceryService) { }
     @Get()
-    async getGroceries(@Query() type: string, name: string): Promise<Groceries> {
+    async getGroceries(@Query() type?: string, name?: string): Promise<Groceries> {
         return await this.groceryService.find({ type, name });
     }
 
