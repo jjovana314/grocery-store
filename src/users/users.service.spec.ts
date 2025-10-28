@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { User, UserType } from './entites/users.entity';
-import * as bcrypt from 'bcrypt';
 import { GroceryService } from '../grocery/grocery.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ForbiddenException } from '@nestjs/common';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -132,12 +132,79 @@ describe('UsersService', () => {
     };
 
     const result = await service.updateUser(currentUser.id, targetUser.id, updateDto);
-
     expect(userModel.findById).toHaveBeenCalledWith('targetUserId');
     expect(groceryService.getGrocery).toHaveBeenCalledWith('childGroceryId');
     expect(groceryService.getParents).toHaveBeenCalledWith('childGroceryId');
     expect(targetUser.save).toHaveBeenCalled();
     expect(result.firstName).toBe('MarkoUpdated');
     expect(result.lastName).toBe('MarkovicUpdated');
+  });
+
+
+  it('should delete a user successfully if current user is allowed', async () => {
+    const userModel: any = (service as any).userModel;
+
+    const targetUser = {
+      id: 'targetUserId',
+      grocery: { id: 'childGroceryId' },
+      delete: jest.fn().mockResolvedValue(true),
+    };
+
+    const currentUser = {
+      id: 'currentUserId',
+      grocery: { id: 'currentUserGroceryId' },
+    };
+
+    // mock valid relationship (allowed to delete)
+    userModel.findById = jest.fn().mockImplementation((id: string) => {
+      if (id === 'targetUserId') return Promise.resolve(targetUser);
+      if (id === 'currentUserId') return Promise.resolve(currentUser);
+      return null;
+    });
+
+    groceryService.getParents = jest.fn().mockResolvedValue({
+      groceries: [
+        { id: 'currentUserGroceryId', name: 'Current Grocery' },
+        { id: 'parentOfCurrent', name: 'Parent Grocery' },
+      ],
+    });
+
+    const result = await service.deleteUser(currentUser.id, targetUser.id);
+
+    expect(userModel.findById).toHaveBeenCalledWith('targetUserId');
+    expect(targetUser.delete).toHaveBeenCalled();
+    expect(result).toEqual(targetUser);
+  });
+
+  it('should throw ForbiddenException if user cannot delete target user', async () => {
+    const userModel: any = (service as any).userModel;
+
+    const targetUser = {
+      id: 'targetUserId',
+      grocery: { id: 'unrelatedGroceryId' },
+      delete: jest.fn(),
+    };
+
+    const currentUser = {
+      id: 'currentUserId',
+      grocery: { id: 'currentUserGroceryId' },
+    };
+
+    // mock no hierarchy relationship (not allowed)
+    userModel.findById = jest.fn().mockImplementation((id: string) => {
+      if (id === 'targetUserId') return Promise.resolve(targetUser);
+      if (id === 'currentUserId') return Promise.resolve(currentUser);
+      return null;
+    });
+
+    groceryService.getParents = jest.fn().mockResolvedValue({
+      groceries: [
+        { id: 'anotherGrocery', name: 'Other Grocery' },
+      ],
+    });
+
+    await expect(service.deleteUser(currentUser.id, targetUser.id))
+      .rejects
+      .toThrow(ForbiddenException);
   });
 });
