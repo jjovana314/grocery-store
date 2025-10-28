@@ -65,8 +65,8 @@ npm run test
 
 ## Author
 
-Developed by Jovana Jovanović
-Contact: jjovana314@gmail.com
+- Developed by Jovana Jovanović
+- Contact: jjovana314@gmail.com
 
 ## License
 
