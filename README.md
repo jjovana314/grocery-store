@@ -30,8 +30,13 @@ cd grocery-store
 npm install
 ```
 
-Then open .env and set your MongoDB URL:
-DATABASE_URL=your_mongodb_url
+## Configuration
+Make sure to have a .env file with a proper keys and values
+
+```bash
+DATABASE_URL=your_database_url
+SECRET_KEY=your_secret_key
+```
 
 ## Database Seeding
 
