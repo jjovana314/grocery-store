@@ -45,7 +45,7 @@ export class UsersService {
     if (query.email) {
       filter.email = new RegExp(query.email, 'i');
     }
-    if (query.firstName){ 
+    if (query.firstName) {
       filter.firstName = new RegExp(query.firstName, 'i');
     }
     if (query.lastName) {
@@ -102,6 +102,10 @@ export class UsersService {
     }
 
     return targetUser;
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return await this.userModel.findOne({ email });
   }
 
   private async canViewUser(currentUser: User, targetUser: User): Promise<boolean> {

@@ -10,12 +10,14 @@ import { SeedModule } from './seed/seed.module';
 import { LoggerModule } from 'nestjs-pino';
 import { RolesGuard } from './auth/roles.guard';
 import { AuthGuard } from './auth/auth.guard';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     UsersModule,
     GroceryModule,
     SeedModule,
+    AuthModule,
     MongooseModule.forRoot(config.get().DATABASE_URL),
     LoggerModule.forRoot({
       pinoHttp: {

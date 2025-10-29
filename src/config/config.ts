@@ -10,8 +10,11 @@ export const config = createProfiguration<Config>(
             default: '',
             env: 'DATABASE_URL',
         },
+        SECRET_KEY: {
+            default: '',
+            env: 'SECRET_KEY'
+        },
 
     },
     { strict: true, verbose: true },
 );
-

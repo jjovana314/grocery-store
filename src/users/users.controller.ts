@@ -11,7 +11,7 @@ import { UsersResult } from './interfaces/users-result-interface';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Get()
   @UseGuards(AuthGuard)
@@ -23,19 +23,19 @@ export class UsersController {
   @UseGuards(AuthGuard)
   async getUser(@Param() id: string, @Req() req) {
     return await this.usersService.getUser(req.user.id, id);
-
   }
+
+  
 
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto): Promise<User> {
     return await this.usersService.createUser(createUserDto);
   }
 
-  
+
   @Put(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Role(UserType.MANAGER)
-  
   async updateUser(@Param() id: string, @Body() updateUserDto: UpdateUserDto, @Req() req): Promise<User> {
     return await this.usersService.updateUser(id, req.user.id, { ...updateUserDto });
   }
