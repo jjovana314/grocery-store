@@ -6,12 +6,63 @@ import { User, UserDocument } from './entites/users.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { GroceryService } from 'src/grocery/grocery.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { SearchUsers } from './dto/search.users';
+import { UsersResult } from './interfaces/users-result-interface';
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>, private readonly groceryService: GroceryService) { }
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>, private readonly groceryService: GroceryService, private readonly logger: PinoLogger) { }
+
+  async findUsers(currUserId: string, query: SearchUsers): Promise<UsersResult> {
+    const currentUser = await this.userModel.findById(currUserId).populate('grocery');
+    if (!currentUser) {
+      throw new NotFoundException('Current user not found');
+    }
+
+    const page = query.page && query.page > 0 ? query.page : 1;
+    const limit = query.limit && query.limit > 0 ? query.limit : 10;
+    const skip = (page - 1) * limit;
+
+    const sortField = query.sort || 'createdAt';
+    const sortDir = query.sortDir === 'desc' ? -1 : 1;
+
+    const descendants = await this.groceryService.getChildren(currentUser.grocery.id);
+    const allowedGroceryIds = [currentUser.grocery.id, ...descendants.map((g) => g.id)];
+
+    // build query
+    const filter: any = {
+      'grocery': { $in: allowedGroceryIds },
+    };
+
+    if (currentUser.type === 'employee') {
+      filter.type = 'employee';
+    }
+
+    if (query.type) {
+      filter.type = query.type;
+    }
+    if (query.email) {
+      filter.email = new RegExp(query.email, 'i');
+    }
+    if (query.firstName){ 
+      filter.firstName = new RegExp(query.firstName, 'i');
+    }
+    if (query.lastName) {
+      filter.lastName = new RegExp(query.lastName, 'i');
+    }
+
+    const [users, total] = await Promise.all([
+      this.userModel.find(filter).sort({ [sortField]: sortDir }).skip(skip).limit(limit).populate('grocery'),
+      this.userModel.countDocuments(filter),
+    ]);
+
+    return { users, total, page, limit };
+  }
+
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
+    this.logger.info(`Creating user with data ${JSON.stringify(createUserDto, null, 2)}`);
     const { email, password, grocery } = createUserDto;
 
     const existingUser = await this.userModel.findOne({ email });
@@ -30,10 +81,50 @@ export class UsersService {
       password: hashedPassword,
     });
 
-    return await user.save();
+
+    const userData = await user.save();
+    this.logger.info(`User with ID ${userData.id} created`);
+    return userData;
+  }
+
+  async getUser(currUserId: string, id: string): Promise<User> {
+    const currentUser = await this.userModel.findById(currUserId).populate('grocery');
+    const targetUser = await this.userModel.findById(id).populate('grocery');
+
+    if (!currentUser || !targetUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    const canView = await this.canViewUser(currentUser, targetUser);
+
+    if (!canView) {
+      throw new ForbiddenException('You do not have permission to view this user');
+    }
+
+    return targetUser;
+  }
+
+  private async canViewUser(currentUser: User, targetUser: User): Promise<boolean> {
+
+    if (currentUser.id === targetUser.id) return true;
+
+    const descendants = await this.groceryService.getChildren(currentUser.grocery.id);
+    const descendantIds = descendants.map((g) => g.id);
+
+    const sameOrDescendent = currentUser.grocery.id === targetUser.grocery.id || descendantIds.includes(targetUser.grocery.id);
+
+    if (currentUser.type === 'manager') {
+      return sameOrDescendent;
+    }
+    if (currentUser.type === 'employee') {
+      return sameOrDescendent && targetUser.type === 'employee';
+    }
+
+    return false;
   }
 
   async updateUser(id: string, updateId: string, request: UpdateUserDto): Promise<User> {
+    this.logger.info(`Trying to update user with id ${updateId} , update data ${JSON.stringify(request)}...`);
     const { currentUser, user } = await this.validate(id, updateId);
     let groceryId: string = '';
 
@@ -51,6 +142,7 @@ export class UsersService {
     if (await this.canUpdateUser(currentUser.grocery.id, groceryId)) {
       await this.updateUserData(user, request);
       await user.save();
+      this.logger.info(`User with id ${updateId} updated`);
       return user;
     }
     throw new ForbiddenException(`User of type ${user.type} and id ${user.id} is not allowed to update`)
@@ -64,7 +156,7 @@ export class UsersService {
     return parentIds.includes(currentUserGroceryId);
   }
 
-  private async validate(currUserId: string , userId: string): Promise<any> {
+  private async validate(currUserId: string, userId: string): Promise<any> {
     const currentUser = await this.userModel.findById(currUserId);
     const user = await this.userModel.findById(userId);
     if (!currentUser) {
