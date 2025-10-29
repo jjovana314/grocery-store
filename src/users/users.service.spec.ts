@@ -25,10 +25,14 @@ describe('UsersService', () => {
 
     userModelMock.findOne = jest.fn();
     userModelMock.create = jest.fn();
+    userModelMock.findById = jest.fn();
+    userModelMock.find = jest.fn();
+    userModelMock.countDocuments = jest.fn();
 
     groceryService = {
       getGrocery: jest.fn(),
       getParents: jest.fn(),
+      getChildren: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -150,7 +154,6 @@ describe('UsersService', () => {
     expect(result.lastName).toBe('MarkovicUpdated');
   });
 
-
   it('should delete a user successfully if current user is allowed', async () => {
     const userModel: any = (service as any).userModel;
 
@@ -216,5 +219,47 @@ describe('UsersService', () => {
     await expect(service.deleteUser(currentUser.id, targetUser.id))
       .rejects
       .toThrow(ForbiddenException);
+  });
+
+  it('should return a user if current user can view', async () => {
+    const targetUser = { id: 'targetUserId', grocery: { id: 'g1' }, type: UserType.EMPLOYEE };
+    const currentUser = { id: 'currentUserId', grocery: { id: 'g1' }, type: UserType.MANAGER };
+
+    const mockQuery = (user: any) => ({
+      populate: jest.fn().mockResolvedValue(user),
+    });
+    groceryService.getChildren = jest.fn().mockResolvedValue([
+      { id: 'anotherGrocery', name: 'Other Grocery' },
+    ]);
+    const userModel: any = (service as any).userModel;
+    userModel.findById.mockImplementation((id: string) => {
+      if (id === 'targetUserId') return mockQuery(targetUser);
+      if (id === 'currentUserId') return mockQuery(currentUser);
+      return null;
+    });
+
+    const result = await service.getUser(currentUser.id, targetUser.id);
+
+    expect(result).toEqual(targetUser);
+  });
+
+  it('should throw ForbiddenException if current user cannot view target', async () => {
+    const targetUser = { id: 'targetUserId', grocery: { id: 'g2' }, type: UserType.MANAGER };
+    const currentUser = { id: 'currentUserId', grocery: { id: 'g1' }, type: UserType.EMPLOYEE };
+
+    const userModel: any = (service as any).userModel;
+    const mockQuery = (user: any) => ({
+      populate: jest.fn().mockResolvedValue(user),
+    });
+    userModel.findById.mockImplementation((id: string) => {
+      if (id === 'targetUserId') return mockQuery(targetUser);
+      if (id === 'currentUserId') return mockQuery(currentUser);
+      return null;
+    });
+    groceryService.getChildren = jest.fn().mockResolvedValue([
+      { id: 'anotherGrocery', name: 'Other Grocery' },
+    ],
+    );
+    await expect(service.getUser(currentUser.id, targetUser.id)).rejects.toThrow(ForbiddenException);
   });
 });
