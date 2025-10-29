@@ -5,6 +5,7 @@ import { User, UserType } from './entites/users.entity';
 import { GroceryService } from '../grocery/grocery.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ForbiddenException } from '@nestjs/common';
+import { PinoLogger } from 'nestjs-pino';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -35,6 +36,15 @@ describe('UsersService', () => {
         UsersService,
         { provide: getModelToken(User.name), useValue: userModelMock },
         { provide: GroceryService, useValue: groceryService },
+        {
+          provide: PinoLogger,
+          useValue: {
+            info: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+          },
+        },
       ],
     }).compile();
 

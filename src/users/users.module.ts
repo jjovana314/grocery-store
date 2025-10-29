@@ -7,7 +7,10 @@ import { GroceryModule } from 'src/grocery/grocery.module';
 
 @Module({
   providers: [UsersService],
-  imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema } ]), GroceryModule],
+  imports: [
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema } ]), 
+    GroceryModule,
+  ],
   controllers: [UsersController],
   exports: [UsersService]
 })
