@@ -127,9 +127,9 @@ export class UsersService {
     return false;
   }
 
-  async updateUser(id: string, updateId: string, request: UpdateUserDto): Promise<User> {
-    this.logger.info(`Trying to update user with id ${updateId} , update data ${JSON.stringify(request)}...`);
-    const { currentUser, user } = await this.validate(id, updateId);
+  async updateUser(currentUserId: string, id: string, request: UpdateUserDto): Promise<User> {
+    this.logger.info(`Trying to update user with id ${id} , update data ${JSON.stringify(request)}...`);
+    const { currentUser, user } = await this.validate(currentUserId, id);
     let groceryId: string = '';
 
     // check user grocery hierachy
@@ -146,7 +146,7 @@ export class UsersService {
     if (await this.canUpdateUser(currentUser.grocery.id, groceryId)) {
       await this.updateUserData(user, request);
       await user.save();
-      this.logger.info(`User with id ${updateId} updated`);
+      this.logger.info(`User with id ${id} updated`);
       return user;
     }
     throw new ForbiddenException(`User of type ${user.type} and id ${user.id} is not allowed to update`)

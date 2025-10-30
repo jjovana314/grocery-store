@@ -26,18 +26,16 @@ export class UsersController {
   }
 
   
-
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto): Promise<User> {
     return await this.usersService.createUser(createUserDto);
   }
 
-
   @Put(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Role(UserType.MANAGER)
   async updateUser(@Param() id: string, @Body() updateUserDto: UpdateUserDto, @Req() req): Promise<User> {
-    return await this.usersService.updateUser(id, req.user.id, { ...updateUserDto });
+    return await this.usersService.updateUser(req.user.id, id, { ...updateUserDto });
   }
 
   @Delete(':id')
